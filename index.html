@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>No.9 ບັນຊີຮ້ານ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root { --bg:#f5f7f6; --card:#fff; --ink:#1d2421; --muted:#6b7570; --brand:#1f6f5c; --bad:#b3261e; --good:#1b7f3b; --line:#e0e5e2; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#121614; --card:#1c211f; --ink:#e8efeb; --muted:#9aa6a0; --brand:#4fb394; --bad:#ff8a80; --good:#7fd69b; --line:#2c3430; }
+  }
+  :root[data-theme="dark"] { --bg:#121614; --card:#1c211f; --ink:#e8efeb; --muted:#9aa6a0; --brand:#4fb394; --bad:#ff8a80; --good:#7fd69b; --line:#2c3430; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Noto Sans Lao", "Phetsarath OT", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--brand); color:#fff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0; }
+  main { padding:16px; max-width:900px; margin:0 auto; padding-bottom:90px; }
+  nav { position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--line); display:flex; z-index:5; }
+  nav button { flex:1; padding:12px 4px; border:0; background:none; color:var(--muted); font-size:14px; }
+  nav button.on { color:var(--brand); font-weight:600; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  input, select, textarea { width:100%; padding:11px; font-size:16px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .seg { display:flex; gap:8px; }
+  .seg label { flex:1; margin:0; }
+  .seg input { display:none; }
+  .seg span { display:block; text-align:center; padding:10px; border:1px solid var(--line); border-radius:8px; color:var(--ink); }
+  .seg input:checked + span { background:var(--brand); color:#fff; border-color:var(--brand); }
+  button.primary { width:100%; padding:13px; font-size:16px; border:0; border-radius:10px; background:var(--brand); color:#fff; margin-top:14px; }
+  button.ghost { padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:none; color:var(--ink); }
+  button.danger { padding:8px 12px; border:0; border-radius:8px; background:var(--bad); color:#fff; }
+  .msg { padding:10px; border-radius:8px; margin:10px 0; font-size:14px; }
+  .msg.err { background:#fde8e6; color:#8a1c14; } .msg.ok { background:#e5f5ea; color:#145a2a; }
+  .in { color:var(--good); } .out { color:var(--bad); }
+  .entry { display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .entry:last-child { border-bottom:0; }
+  .entry .meta { font-size:12px; color:var(--muted); }
+  .amt { font-weight:600; white-space:nowrap; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  .stat small { color:var(--muted); } .stat b { display:block; font-size:18px; margin-top:4px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:8px 6px; border-bottom:1px solid var(--line); text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  .wrap { overflow-x:auto; }
+  .hidden { display:none !important; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .preview { max-width:100%; border-radius:8px; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>No.9 ບັນຊີຮ້ານ</h1>
+  <div id="who" class="hidden"><span id="whoName"></span> · <button class="ghost" id="logoutBtn" style="color:#fff;border-color:#fff">ອອກ</button></div>
+</header>
+
+<main>
+  <!-- LOGIN -->
+  <section id="loginView" class="card hidden" style="max-width:360px;margin:30px auto">
+    <h2 style="margin-top:0">ເຂົ້າສູ່ລະບົບ</h2>
+    <label>ຊື່</label>
+    <input id="loginName" autocomplete="username" placeholder="ຊື່ຂອງທ່ານ">
+    <label>PIN 4 ຕົວ</label>
+    <input id="loginPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password">
+    <button class="primary" id="loginBtn">ເຂົ້າສູ່ລະບົບ</button>
+    <div id="loginMsg"></div>
+  </section>
+
+  <!-- ENTRY FORM -->
+  <section id="tabEntry" class="hidden">
+    <div class="card">
+      <h2 style="margin-top:0">ລົງບັນຊີ</h2>
+      <div id="entryMsg"></div>
+      <label>ປະເພດ</label>
+      <div class="seg">
+        <label><input type="radio" name="type" value="ລາຍຮັບ" checked><span>ລາຍຮັບ</span></label>
+        <label><input type="radio" name="type" value="ລາຍຈ່າຍ"><span>ລາຍຈ່າຍ</span></label>
+      </div>
+      <div class="row">
+        <div><label>ວັນທີ</label><input id="fDate" type="date"></div>
+        <div><label>ຊ່ອງທາງ</label>
+          <select id="fChan"><option value="ສົດ">ສົດ</option><option value="ໂອນ">ໂອນ</option></select></div>
+      </div>
+      <label>ໝວດ</label>
+      <div style="display:flex;gap:8px">
+        <select id="fCat" style="flex:1"></select>
+        <button class="ghost owner-only hidden" id="addCatBtn">+ ໝວດ</button>
+      </div>
+      <label>ລາຍລະອຽດ</label>
+      <input id="fDesc" maxlength="300" placeholder="ເຊັ່ນ: ຄ່າໄຟ ເດືອນ 11">
+      <div class="row">
+        <div><label>ສະກຸນ</label>
+          <select id="fCur"><option value="ກີບ">ກີບ</option><option value="ບາດ">ບາດ</option></select></div>
+        <div><label>ຈຳນວນເງິນ</label><input id="fAmt" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div id="rateWrap" class="hidden">
+        <label>ອັດຕາ (1 ບາດ = ? ກີບ)</label>
+        <input id="fRate" inputmode="numeric" placeholder="683">
+      </div>
+      <div id="lakPreview" class="stat-note" style="font-size:13px;color:var(--muted);margin-top:6px"></div>
+      <label>ຮູບ/ບິນ (ບໍ່ບັງຄັບ)</label>
+      <input id="fPhoto" type="file" accept="image/*" capture="environment">
+      <img id="photoPreview" class="preview hidden" alt="">
+      <button class="primary" id="saveBtn">ບັນທຶກ</button>
+    </div>
+  </section>
+
+  <!-- LIST -->
+  <section id="tabList" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div><label>ຈາກວັນທີ</label><input id="lFrom" type="date"></div>
+        <div><label>ຫາວັນທີ</label><input id="lTo" type="date"></div>
+      </div>
+      <div class="chips">
+        <button class="ghost" data-preset="today">ມື້ນີ້</button>
+        <button class="ghost" data-preset="month">ເດືອນນີ້</button>
+      </div>
+      <button class="primary" id="lLoad">ໂຫຼດ</button>
+    </div>
+    <div class="card" id="entryList"></div>
+  </section>
+
+  <!-- SUMMARY (owner) -->
+  <section id="tabSummary" class="hidden">
+    <div class="card">
+      <div class="row">
+        <div><label>ຈາກວັນທີ</label><input id="sFrom" type="date"></div>
+        <div><label>ຫາວັນທີ</label><input id="sTo" type="date"></div>
+      </div>
+      <div class="chips">
+        <button class="ghost" data-fy>ປີງົບປະມານ 08/2026–06/2027</button>
+        <button class="ghost" data-preset="month">ເດືອນນີ້</button>
+      </div>
+      <button class="primary" id="sLoad">ເບິ່ງສະຫຼຸບ</button>
+    </div>
+    <div id="sOut"></div>
+    <div class="card owner-only hidden">
+      <h3 style="margin-top:0">ຕັ້ງ PIN / ເພີ່ມຜູ້ໃຊ້</h3>
+      <div class="row">
+        <div><label>ຊື່ຜູ້ໃຊ້</label><input id="uName"></div>
+        <div><label>PIN ໃໝ່ (4 ຕົວເລກ)</label><input id="uPin" inputmode="numeric" maxlength="4"></div>
+      </div>
+      <div class="row">
+        <button class="ghost" id="uSetPin">ຕັ້ງ PIN</button>
+        <button class="ghost" id="uAdd">ເພີ່ມຜູ້ໃຊ້ (member)</button>
+      </div>
+      <div id="uMsg"></div>
+    </div>
+  </section>
+</main>
+
+<nav id="tabs" class="hidden">
+  <button data-tab="Entry" class="on">ລົງບັນຊີ</button>
+  <button data-tab="List">ລາຍການ</button>
+  <button data-tab="Summary" class="owner-only hidden">ສະຫຼຸບ</button>
+</nav>
+
+<script>
+// ===== CONFIG: paste the Apps Script Web app URL here (ends with /exec) =====
+const API_URL = 'https://script.google.com/macros/s/AKfycbzH5X1ugg321V80qmSgcI_GJXZH284gWLnd2UkR1vLK0XYYuy8h_DwBGreGL01P_Xzo-g/exec';
+const CONFIRM_LAK = 50000000;
+
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n || 0).toLocaleString('en-US');
+const todayISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const monthStart = () => todayISO().slice(0, 8) + '01';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Session & last rate are per-device conveniences only (localStorage)
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem('no9_' + k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem('no9_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('no9_' + k); } catch (e) {} }
+};
+let session = store.get('session');
+let categories = [];
+
+async function api(action, payload = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ action, token: session?.token }, payload))
+  });
+  const j = await res.json();
+  if (!j.ok) {
+    if (/ເຂົ້າສູ່ລະບົບໃໝ່/.test(j.error)) { logout(); }
+    throw new Error(j.error);
+  }
+  return j.data;
+}
+
+function msg(el, text, ok = false) { el.innerHTML = text ? `<div class="msg ${ok ? 'ok' : 'err'}">${esc(text)}</div>` : ''; }
+
+function show(view) {
+  ['loginView', 'tabEntry', 'tabList', 'tabSummary'].forEach(v => $(v).classList.toggle('hidden', v !== view));
+  $('tabs').classList.toggle('hidden', view === 'loginView');
+  $('who').classList.toggle('hidden', view === 'loginView');
+}
+
+function applyRole() {
+  const isOwner = session?.role === 'owner';
+  document.querySelectorAll('.owner-only').forEach(el => el.classList.toggle('hidden', !isOwner));
+  $('whoName').textContent = session?.name || '';
+}
+
+function setTab(name) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  ['Entry', 'List', 'Summary'].forEach(t => $('tab' + t).classList.toggle('hidden', t !== name));
+  if (name === 'List') loadList();
+  if (name === 'Summary') loadSummary();
+}
+
+// ===== login =====
+$('loginBtn').onclick = async () => {
+  msg($('loginMsg'), '');
+  try {
+    const r = await api('login', { name: $('loginName').value.trim(), pin: $('loginPin').value.trim() });
+    session = r; store.set('session', r);
+    $('loginPin').value = '';
+    await start();
+  } catch (e) { msg($('loginMsg'), e.message); }
+};
+$('logoutBtn').onclick = logout;
+function logout() { session = null; store.del('session'); show('loginView'); }
+
+async function start() {
+  applyRole();
+  show('tabEntry');
+  setTab('Entry');
+  $('fDate').value = todayISO();
+  $('lFrom').value = monthStart(); $('lTo').value = todayISO();
+  $('sFrom').value = '2026-08-01'; $('sTo').value = '2027-06-30';
+  await loadCategories();
+}
+
+// ===== categories & form =====
+async function loadCategories() {
+  categories = await api('listCategories');
+  refreshCats();
+}
+function refreshCats() {
+  const type = document.querySelector('input[name=type]:checked').value;
+  const list = categories.filter(c => c.type === type);
+  $('fCat').innerHTML = list.map(c => `<option>${esc(c.name)}</option>`).join('');
+}
+document.querySelectorAll('input[name=type]').forEach(r => r.onchange = refreshCats);
+
+$('addCatBtn').onclick = async () => {
+  const name = prompt('ຊື່ໝວດໃໝ່');
+  if (!name) return;
+  const type = document.querySelector('input[name=type]:checked').value;
+  try { categories = await api('addCategory', { type, name }); refreshCats(); $('fCat').value = name; }
+  catch (e) { msg($('entryMsg'), e.message); }
+};
+
+$('fCur').onchange = () => {
+  const baht = $('fCur').value === 'ບາດ';
+  $('rateWrap').classList.toggle('hidden', !baht);
+  if (baht && !$('fRate').value) $('fRate').value = store.get('lastRate') || '';
+  updatePreview();
+};
+function digits(s) { return String(s || '').replace(/[^\d]/g, ''); }
+function updatePreview() {
+  const amt = Number(digits($('fAmt').value));
+  const rate = $('fCur').value === 'ບາດ' ? Number(digits($('fRate').value)) : 1;
+  $('lakPreview').textContent = amt && rate ? `= ${fmt(amt * rate)} ກີບ` : '';
+}
+$('fAmt').oninput = e => { e.target.value = fmt(digits(e.target.value)) || ''; updatePreview(); };
+$('fRate').oninput = e => { e.target.value = fmt(digits(e.target.value)) || ''; updatePreview(); };
+
+// resize photos on the device before upload (keeps payload small)
+async function resizeImage(file, max = 1280) {
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  await img.decode();
+  const k = Math.min(1, max / Math.max(img.width, img.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.7);
+}
+let photoData = null;
+$('fPhoto').onchange = async e => {
+  const f = e.target.files[0];
+  photoData = null;
+  if (!f) { $('photoPreview').classList.add('hidden'); return; }
+  photoData = await resizeImage(f);
+  $('photoPreview').src = photoData;
+  $('photoPreview').classList.remove('hidden');
+};
+
+$('saveBtn').onclick = async () => {
+  msg($('entryMsg'), '');
+  const type = document.querySelector('input[name=type]:checked').value;
+  const cur = $('fCur').value;
+  const amount = Number(digits($('fAmt').value));
+  const rate = cur === 'ບາດ' ? Number(digits($('fRate').value)) : 1;
+  if (cur === 'ບາດ' && rate) store.set('lastRate', rate);
+  const lak = amount * rate;
+  const payload = {
+    type, date: $('fDate').value, cat: $('fCat').value, desc: $('fDesc').value.trim(),
+    chan: $('fChan').value, cur, amount, rate, photo: photoData || undefined, confirmed: false
+  };
+  if (lak >= CONFIRM_LAK && !confirm(`ຍອດ ${fmt(lak)} ກີບ ສູງຜິດປົກກະຕິ. ຢືນຢັນບັນທຶກບໍ?`)) return;
+  payload.confirmed = lak >= CONFIRM_LAK;
+  $('saveBtn').disabled = true;
+  try {
+    await api('addEntry', payload);
+    msg($('entryMsg'), 'ບັນທຶກແລ້ວ', true);
+    $('fAmt').value = ''; $('fDesc').value = ''; $('fPhoto').value = ''; photoData = null;
+    $('photoPreview').classList.add('hidden'); updatePreview();
+  } catch (e) { msg($('entryMsg'), e.message); }
+  finally { $('saveBtn').disabled = false; }
+};
+
+// ===== list =====
+document.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => {
+  if (b.dataset.preset === 'today') { $('lFrom').value = $('lTo').value = todayISO(); }
+  else { $('lFrom').value = monthStart(); $('lTo').value = todayISO(); }
+  if (b.closest('#tabSummary')) { $('sFrom').value = $('lFrom').value; $('sTo').value = $('lTo').value; }
+  else loadList();
+});
+document.querySelector('[data-fy]').onclick = () => { $('sFrom').value = '2026-08-01'; $('sTo').value = '2027-06-30'; };
+$('lLoad').onclick = loadList;
+
+async function loadList() {
+  if (!session) return;
+  $('entryList').innerHTML = 'ກຳລັງໂຫຼດ...';
+  try {
+    const rows = await api('listEntries', { from: $('lFrom').value, to: $('lTo').value });
+    if (!rows.length) { $('entryList').innerHTML = '<div style="color:var(--muted)">ບໍ່ມີລາຍການ</div>'; return; }
+    const isOwner = session.role === 'owner';
+    $('entryList').innerHTML = rows.map(r => `
+      <div class="entry">
+        <div>
+          <div><b>${esc(r.cat)}</b> · ${esc(r.desc)}</div>
+          <div class="meta">${esc(r.date)} · ${esc(r.chan)} · ${esc(r.by)}${r.cur === 'ບາດ' ? ` · ${fmt(r.orig)} ບາດ @${fmt(r.rate)}` : ''}${r.hasPhoto ? ' · 📎' : ''}</div>
+          ${isOwner ? `<div class="chips"><button class="ghost" onclick="editEntry('${r.id}', ${r.orig}, '${esc(r.desc).replace(/'/g, '')}')">ແກ້ໄຂ</button><button class="danger" onclick="delEntry('${r.id}')">ລຶບ</button></div>` : ''}
+        </div>
+        <div class="amt ${r.type === 'ລາຍຮັບ' ? 'in' : 'out'}">${r.type === 'ລາຍຮັບ' ? '+' : '−'}${fmt(r.lak)}</div>
+      </div>`).join('');
+  } catch (e) { $('entryList').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+
+window.editEntry = async (id, orig, desc) => {
+  const amount = prompt('ຈຳນວນເງິນ (ສະກຸນເດີມ)', orig);
+  if (amount === null) return;
+  const d = prompt('ລາຍລະອຽດ', desc);
+  if (d === null) return;
+  try { await api('updateEntry', { id, patch: { amount: Number(digits(amount)), desc: d } }); loadList(); }
+  catch (e) { alert(e.message); }
+};
+window.delEntry = async id => {
+  if (!confirm('ລຶບລາຍການນີ້? (ເກັບປະຫວັດໄວ້)')) return;
+  try { await api('deleteEntry', { id }); loadList(); } catch (e) { alert(e.message); }
+};
+
+// ===== summary (owner) =====
+$('sLoad').onclick = loadSummary;
+async function loadSummary() {
+  if (!session || session.role !== 'owner') return;
+  $('sOut').innerHTML = 'ກຳລັງຄຳນວນ...';
+  try {
+    const s = await api('summary', { from: $('sFrom').value, to: $('sTo').value });
+    const cards = `
+      <div class="stats">
+        <div class="stat"><small>ລາຍຮັບລວມ</small><b class="in">${fmt(s.totals.income)}</b></div>
+        <div class="stat"><small>ລາຍຈ່າຍລວມ</small><b class="out">${fmt(s.totals.expense)}</b></div>
+        <div class="stat"><small>ສຸດທິ</small><b>${fmt(s.totals.income - s.totals.expense)}</b></div>
+        <div class="stat"><small>ເງິນເກັບສະສົມ</small><b>${fmt(s.cashCollected)}</b></div>
+        <div class="stat"><small>ຍອດຂາດສະສົມ</small><b class="out">${fmt(s.cashShortfall)}</b></div>
+      </div>`;
+    const months = `<div class="card"><h3 style="margin-top:0">ສະຫຼຸບລາຍເດືອນ</h3><div class="wrap"><table>
+      <tr><th>ເດືອນ</th><th>ຂາຍສົດ</th><th>ຂາຍໂອນ</th><th>ຝາກລົດ</th><th>ລາຍຮັບ</th><th>ລາຍຈ່າຍ</th></tr>
+      ${s.months.map(m => `<tr><td>${esc(m.month)}</td><td>${fmt(m.cashSales)}</td><td>${fmt(m.transferSales)}</td><td>${fmt(m.parking)}</td><td class="in">${fmt(m.income)}</td><td class="out">${fmt(m.expense)}</td></tr>`).join('')}
+      </table></div></div>`;
+    const daily = `<div class="card"><h3 style="margin-top:0">ລາຍວັນ ແລະ ເງິນເກັບສະສົມ</h3><div class="wrap"><table>
+      <tr><th>ວັນທີ</th><th>ຂາຍສົດ</th><th>ຂາຍໂອນ</th><th>ຝາກລົດ</th><th>ເກັບ</th><th>ຂາດ</th><th>ເກັບສະສົມ</th><th>ຂາດສະສົມ</th></tr>
+      ${s.days.filter(d => d.income || d.expense || d.short).map(d => `<tr><td>${esc(d.date)}</td><td>${fmt(d.cashSales)}</td><td>${fmt(d.transferSales)}</td><td>${fmt(d.parking)}</td><td>${fmt(d.collected + d.parking)}</td><td>${fmt(d.short)}</td><td>${fmt(d.cumCollected)}</td><td>${fmt(d.cumShort)}</td></tr>`).join('')}
+      </table></div></div>`;
+    $('sOut').innerHTML = cards + months + daily;
+  } catch (e) { $('sOut').innerHTML = `<div class="msg err">${esc(e.message)}</div>`; }
+}
+
+// ===== owner: PIN & users =====
+$('uSetPin').onclick = async () => {
+  try { await api('setPin', { target: $('uName').value.trim(), pin: $('uPin').value.trim() }); msg($('uMsg'), 'ຕັ້ງ PIN ແລ້ວ', true); }
+  catch (e) { msg($('uMsg'), e.message); }
+};
+$('uAdd').onclick = async () => {
+  try { await api('addUser', { name: $('uName').value.trim(), role: 'member', pin: $('uPin').value.trim() }); msg($('uMsg'), 'ເພີ່ມຜູ້ໃຊ້ແລ້ວ', true); }
+  catch (e) { msg($('uMsg'), e.message); }
+};
+
+// ===== boot =====
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+if (session) { start().catch(() => { show('loginView'); }); } else { show('loginView'); }
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
